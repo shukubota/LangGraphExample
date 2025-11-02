@@ -1,0 +1,4 @@
+langgraph>=1.0.0
+langchain>=1.0.0
+langchain-anthropic>=1.0.0
+pypdf>=4.0.0
