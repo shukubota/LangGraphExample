@@ -5,17 +5,17 @@ import { useWebSocket } from '@/hooks/useWebSocket';
 import { GraphView } from '@/components/GraphView';
 import { StatePanel } from '@/components/StatePanel';
 import { ControlPanel } from '@/components/ControlPanel';
-import { GraphData, PaperAnalysisState, WebSocketMessage } from '@/types';
+import { GraphData, PaperAnalysisState } from '@/types';
 
 export function VisualizerClient() {
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [currentState, setCurrentState] = useState<PaperAnalysisState | null>(null);
   const [currentNode, setCurrentNode] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [nodeStatuses, setNodeStatuses] = useState<Record<string, string>>({});
+  const [nodeStatuses, setNodeStatuses] = useState<Record<string, 'pending' | 'running' | 'completed' | 'error'>>({});
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   
-  const { socket, isConnected, sessionId, lastMessage, connectionError } = useWebSocket();
+  const { isConnected, sessionId, lastMessage, connectionError } = useWebSocket();
 
   // WebSocketメッセージの処理
   useEffect(() => {
@@ -44,11 +44,11 @@ export function VisualizerClient() {
 
       case 'node_started':
         if (lastMessage.node_id || lastMessage.node_name) {
-          const nodeId = lastMessage.node_id || lastMessage.node_name;
+          const nodeId = (lastMessage.node_id || lastMessage.node_name) as string;
           setCurrentNode(nodeId);
           setNodeStatuses(prev => ({
             ...prev,
-            [nodeId]: 'running'
+            [nodeId]: 'running' as const
           }));
           console.log('Node started:', nodeId);
         }
@@ -56,10 +56,10 @@ export function VisualizerClient() {
 
       case 'node_completed':
         if (lastMessage.node_id || lastMessage.node_name) {
-          const nodeId = lastMessage.node_id || lastMessage.node_name;
+          const nodeId = (lastMessage.node_id || lastMessage.node_name) as string;
           setNodeStatuses(prev => ({
             ...prev,
-            [nodeId]: 'completed'
+            [nodeId]: 'completed' as const
           }));
           
           // 完了したノードがcurrentNodeの場合、クリア
