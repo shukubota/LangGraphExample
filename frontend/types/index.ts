@@ -44,6 +44,12 @@ export interface PaperAnalysisState {
   final_summary: string;
   messages: string[];
   processing_time: number;
+  token_usage?: {
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+    cost_usd?: number;
+  };
 }
 
 export interface WebSocketMessage {

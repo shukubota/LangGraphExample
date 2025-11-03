@@ -123,7 +123,7 @@ export function GraphView({ graphData, currentNode, isAnalyzing, className = '' 
       .attr('dy', '.35em')
       .attr('font-size', '11px')
       .attr('font-weight', 'bold')
-      .attr('fill', '#fff')
+      .attr('fill', '#000')
       .style('pointer-events', 'none')
       .selectAll('tspan')
       .data((d: any) => d.label.split(' '))
@@ -208,8 +208,12 @@ export function GraphView({ graphData, currentNode, isAnalyzing, className = '' 
             <span>未実行</span>
           </div>
           <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+            <span>実行中 (オレンジ)</span>
+          </div>
+          <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span>実行中</span>
+            <span>現在のノード (青)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500"></div>

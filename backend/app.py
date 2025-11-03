@@ -221,6 +221,18 @@ def execute_analysis_with_visualization(session_id: str, pdf_path: str):
                 'state': current_state.copy(),
                 'timestamp': datetime.now().isoformat()
             })
+            
+            # 次のステップまで少し待機
+            socketio.sleep(0.5)
+        
+        # トークン使用量をシミュレート（実際の実装では実際の値を使用）
+        token_usage = {
+            'input_tokens': 1500 + len(steps) * 200,
+            'output_tokens': 800 + len(steps) * 150,
+            'total_tokens': 2300 + len(steps) * 350,
+            'cost_usd': (2300 + len(steps) * 350) * 0.000015  # Claude 3.5 Sonnet概算
+        }
+        current_state['token_usage'] = token_usage
         
         # 分析完了通知
         viz_manager.broadcast_to_session(session_id, 'graph_update', {

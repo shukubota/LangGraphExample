@@ -62,6 +62,9 @@ export function VisualizerClient() {
             [nodeId]: 'completed'
           }));
           
+          // 完了したノードがcurrentNodeの場合、クリア
+          setCurrentNode(prev => prev === nodeId ? null : prev);
+          
           if (lastMessage.state) {
             setCurrentState(lastMessage.state);
           }
