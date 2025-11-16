@@ -15,7 +15,7 @@ from paper_analyzer import analyze_paper, extract_text_from_pdf, detect_figures
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'langgraph-visualizer-secret'
-CORS(app, origins=["http://localhost:3000"])
+CORS(app, origins=["http://localhost:3003"])
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 class VisualizationManager:

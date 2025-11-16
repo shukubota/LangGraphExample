@@ -70,19 +70,19 @@ export default function HomePage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-center gap-4">
                   <div className="bg-blue-100 px-4 py-2 rounded-lg">
-                    <strong>Next.js SSR</strong><br/>
-                    <small>フロントエンド</small>
+                    <strong className="text-blue-900">Next.js SSR</strong><br/>
+                    <small className="text-blue-700">フロントエンド</small>
                   </div>
                   <div className="text-2xl">↔️</div>
                   <div className="bg-green-100 px-4 py-2 rounded-lg">
-                    <strong>Flask + SocketIO</strong><br/>
-                    <small>バックエンド</small>
+                    <strong className="text-green-900">Flask + SocketIO</strong><br/>
+                    <small className="text-green-700">バックエンド</small>
                   </div>
                 </div>
                 <div className="text-xl">⬇️</div>
                 <div className="bg-purple-100 px-4 py-2 rounded-lg">
-                  <strong>LangGraph + Claude</strong><br/>
-                  <small>マルチエージェント実行</small>
+                  <strong className="text-purple-900">LangGraph + Claude</strong><br/>
+                  <small className="text-purple-700">マルチエージェント実行</small>
                 </div>
               </div>
             </div>

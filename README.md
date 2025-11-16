@@ -11,7 +11,14 @@ LangGraphを使った論文解説システム。生成AI関連の論文を非専
 
 ## 📦 システム構成
 
-### マルチエージェント構造
+### 🏗️ アーキテクチャ
+
+```
+Next.js SSR              Flask + SocketIO         LangGraph + Claude
+フロントエンド      <-->    バックエンド       -->   マルチエージェント実行
+```
+
+### 🤖 マルチエージェント構造
 
 ```
 論文PDF → 構造解析Agent → 専門用語翻訳Agent → [条件分岐]
@@ -47,7 +54,9 @@ direnv allow
 pip install langgraph langchain langchain-anthropic pypdf
 ```
 
-### 実行
+### 実行方法
+
+#### CLI版（コマンドライン）
 
 ```bash
 # PDFファイルから
@@ -57,6 +66,22 @@ python paper_analyzer.py path/to/paper.pdf
 from paper_analyzer import analyze_paper
 result = analyze_paper(paper_pdf_path="paper.pdf")
 print(result["final_summary"])
+```
+
+#### Web版（可視化インターフェース）
+
+```bash
+# バックエンド起動（ポート5001）
+cd backend
+python app.py
+
+# フロントエンド起動（ポート3003）
+cd frontend
+npm install
+npm run dev
+
+# ブラウザでアクセス
+open http://localhost:3003
 ```
 
 ## 📋 出力形式

@@ -21,7 +21,7 @@ npm install
 
 ```bash
 # .env.local ファイルを作成（必要に応じて）
-echo 'FLASK_API_URL=http://localhost:5000' > .env.local
+echo 'FLASK_API_URL=http://localhost:5001' > .env.local
 ```
 
 ### 3. 開発サーバー起動
@@ -30,7 +30,7 @@ echo 'FLASK_API_URL=http://localhost:5000' > .env.local
 npm run dev
 ```
 
-✅ フロントエンドが起動: http://localhost:3000
+✅ フロントエンドが起動: http://localhost:3003
 
 ## 🚀 使用方法
 
@@ -140,7 +140,7 @@ GET /api/health
 
 ```typescript
 // Flask SocketIO との接続
-ws://localhost:5000
+ws://localhost:5001
 
 // 受信イベント
 - 'connected': 接続確立
@@ -161,17 +161,17 @@ ws://localhost:5000
 
 ```bash
 # Flask APIが起動しているか確認
-curl http://localhost:5000/health
+curl http://localhost:5001/health
 
 # CORS設定を確認
-# Flask側でCORS(app, origins=["http://localhost:3000"])が設定されているか
+# Flask側でCORS(app, origins=["http://localhost:3003"])が設定されているか
 ```
 
 #### 2. API呼び出しエラー
 
 ```bash
 # Next.js API Routesの確認
-curl http://localhost:3000/api/health
+curl http://localhost:3003/api/health
 
 # ネットワーク設定確認
 # ブラウザのデベロッパーツールでNetwork タブを確認
