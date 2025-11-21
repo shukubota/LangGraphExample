@@ -13,9 +13,17 @@ export interface GraphEdge {
   id: string;
   source: string;
   target: string;
-  type?: 'direct' | 'conditional';
+  type?: 'direct' | 'conditional' | 'entry' | 'exit' | 'loop';
   label?: string;
   condition?: string;
+  weight?: number; // 1-10, affects thickness
+  importance?: 'low' | 'medium' | 'high' | 'critical';
+  animated?: boolean;
+  dataFlow?: {
+    active: boolean;
+    direction: 'forward' | 'backward' | 'bidirectional';
+    speed?: 'slow' | 'medium' | 'fast';
+  };
 }
 
 export interface GraphData {

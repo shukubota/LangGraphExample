@@ -60,8 +60,11 @@ export function GraphView({ graphData, currentNode, isAnalyzing, className = '' 
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(50));
 
-    // Arrow marker definition
-    svg.append('defs').append('marker')
+    // Arrow marker definitions for different edge types
+    const defs = svg.append('defs');
+    
+    // Standard arrow
+    defs.append('marker')
       .attr('id', 'arrowhead')
       .attr('viewBox', '-0 -5 10 10')
       .attr('refX', 25)
@@ -69,33 +72,136 @@ export function GraphView({ graphData, currentNode, isAnalyzing, className = '' 
       .attr('orient', 'auto')
       .attr('markerWidth', 8)
       .attr('markerHeight', 8)
-      .attr('xoverflow', 'visible')
       .append('svg:path')
       .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
-      .attr('fill', '#666')
-      .style('stroke', 'none');
+      .attr('fill', '#666');
+    
+    // Conditional arrow (red)
+    defs.append('marker')
+      .attr('id', 'arrowhead-conditional')
+      .attr('viewBox', '-0 -5 10 10')
+      .attr('refX', 25)
+      .attr('refY', 0)
+      .attr('orient', 'auto')
+      .attr('markerWidth', 8)
+      .attr('markerHeight', 8)
+      .append('svg:path')
+      .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+      .attr('fill', '#ef4444');
+    
+    // Entry arrow (green)
+    defs.append('marker')
+      .attr('id', 'arrowhead-entry')
+      .attr('viewBox', '-0 -5 10 10')
+      .attr('refX', 25)
+      .attr('refY', 0)
+      .attr('orient', 'auto')
+      .attr('markerWidth', 10)
+      .attr('markerHeight', 10)
+      .append('svg:path')
+      .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+      .attr('fill', '#10b981');
+    
+    // Exit arrow (purple)
+    defs.append('marker')
+      .attr('id', 'arrowhead-exit')
+      .attr('viewBox', '-0 -5 10 10')
+      .attr('refX', 25)
+      .attr('refY', 0)
+      .attr('orient', 'auto')
+      .attr('markerWidth', 10)
+      .attr('markerHeight', 10)
+      .append('svg:path')
+      .attr('d', 'M 0,-5 L 10 ,0 L 0,5')
+      .attr('fill', '#8b5cf6');
+    
+    // Gradient for animated edges
+    const gradient = defs.append('linearGradient')
+      .attr('id', 'flow-gradient')
+      .attr('gradientUnits', 'userSpaceOnUse');
+    
+    gradient.append('stop')
+      .attr('offset', '0%')
+      .attr('stop-color', '#3b82f6')
+      .attr('stop-opacity', 0);
+    
+    gradient.append('stop')
+      .attr('offset', '50%')
+      .attr('stop-color', '#3b82f6')
+      .attr('stop-opacity', 1);
+    
+    gradient.append('stop')
+      .attr('offset', '100%')
+      .attr('stop-color', '#3b82f6')
+      .attr('stop-opacity', 0);
 
     // Links
-    const link = g.append('g')
-      .selectAll('line')
+    const linkGroup = g.append('g').attr('class', 'links');
+    
+    const link = linkGroup
+      .selectAll('.link')
       .data(links)
-      .enter().append('line')
-      .attr('stroke', (d: any) => d.type === 'conditional' ? '#ff6b6b' : '#666')
-      .attr('stroke-width', 2)
-      .attr('marker-end', 'url(#arrowhead)')
-      .style('stroke-dasharray', (d: any) => d.type === 'conditional' ? '5,5' : 'none');
+      .enter().append('g')
+      .attr('class', 'link');
+    
+    // Main edge lines
+    link.append('line')
+      .attr('class', 'edge-line')
+      .attr('stroke', (d: any) => getEdgeColor(d))
+      .attr('stroke-width', (d: any) => getEdgeThickness(d))
+      .attr('marker-end', (d: any) => getArrowMarker(d))
+      .style('stroke-dasharray', (d: any) => getEdgeStyle(d))
+      .style('opacity', 0.8);
+    
+    // Animated flow overlay for active edges
+    link.filter((d: any) => d.animated || d.dataFlow?.active)
+      .append('line')
+      .attr('class', 'edge-animation')
+      .attr('stroke', 'url(#flow-gradient)')
+      .attr('stroke-width', (d: any) => Math.max(2, getEdgeThickness(d) - 1))
+      .style('stroke-dasharray', '10,5')
+      .style('opacity', 0.7);
 
-    // Link labels
-    const linkLabel = g.append('g')
-      .selectAll('text')
-      .data(links)
-      .enter().append('text')
+    // Link labels with background
+    const linkLabelGroup = g.append('g').attr('class', 'link-labels');
+    
+    const linkLabels = linkLabelGroup
+      .selectAll('.link-label-group')
+      .data(links.filter((d: any) => d.label))
+      .enter().append('g')
+      .attr('class', 'link-label-group');
+    
+    // Label background
+    linkLabels.append('rect')
+      .attr('class', 'label-background')
+      .attr('rx', 3)
+      .attr('ry', 3)
+      .attr('fill', 'rgba(255, 255, 255, 0.9)')
+      .attr('stroke', '#ddd')
+      .attr('stroke-width', 0.5);
+    
+    // Label text
+    const labelText = linkLabels.append('text')
       .attr('class', 'link-label')
       .attr('text-anchor', 'middle')
-      .attr('font-size', '12px')
-      .attr('fill', '#666')
-      .attr('dy', -5)
+      .attr('font-size', '10px')
+      .attr('font-weight', 'medium')
+      .attr('fill', (d: any) => getEdgeLabelColor(d))
+      .attr('dy', '.35em')
       .text((d: any) => d.label || '');
+    
+    // Adjust background size to text
+    linkLabels.selectAll('.label-background')
+      .attr('width', function(this: any, d: any) {
+        const textWidth = this.nextSibling?.getBBox?.()?.width || 0;
+        return textWidth + 8;
+      })
+      .attr('height', 16)
+      .attr('x', function(this: any, d: any) {
+        const textWidth = this.nextSibling?.getBBox?.()?.width || 0;
+        return -(textWidth + 8) / 2;
+      })
+      .attr('y', -8);
 
     // Nodes
     const node = g.append('g')
@@ -145,18 +251,55 @@ export function GraphView({ graphData, currentNode, isAnalyzing, className = '' 
 
     // Simulation tick
     simulation.on('tick', () => {
-      link
+      // Update main edge lines
+      link.selectAll('.edge-line')
         .attr('x1', (d: any) => d.source.x)
         .attr('y1', (d: any) => d.source.y)
         .attr('x2', (d: any) => d.target.x)
         .attr('y2', (d: any) => d.target.y);
 
-      linkLabel
-        .attr('x', (d: any) => (d.source.x + d.target.x) / 2)
-        .attr('y', (d: any) => (d.source.y + d.target.y) / 2);
+      // Update animated edge lines
+      link.selectAll('.edge-animation')
+        .attr('x1', (d: any) => d.source.x)
+        .attr('y1', (d: any) => d.source.y)
+        .attr('x2', (d: any) => d.target.x)
+        .attr('y2', (d: any) => d.target.y);
+
+      // Update label positions
+      linkLabelGroup.selectAll('.link-label-group')
+        .attr('transform', (d: any) => {
+          const x = (d.source.x + d.target.x) / 2;
+          const y = (d.source.y + d.target.y) / 2;
+          return `translate(${x}, ${y})`;
+        });
 
       node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
     });
+
+    // Start edge animations
+    const animateEdges = () => {
+      link.selectAll('.edge-animation')
+        .style('stroke-dashoffset', '0')
+        .transition()
+        .duration((d: any) => {
+          switch (d.dataFlow?.speed) {
+            case 'fast': return 1000;
+            case 'medium': return 2000;
+            case 'slow': return 3000;
+            default: return 2000;
+          }
+        })
+        .ease(d3.easeLinear)
+        .style('stroke-dashoffset', '15')
+        .on('end', function(d: any) {
+          if (d.animated || d.dataFlow?.active) {
+            animateEdges.call(this);
+          }
+        });
+    };
+
+    // Start animations for active flows
+    setTimeout(animateEdges, 100);
 
     function dragstarted(event: any, d: any) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -188,6 +331,56 @@ export function GraphView({ graphData, currentNode, isAnalyzing, className = '' 
     }
   };
 
+  const getEdgeColor = (edge: any) => {
+    switch (edge.type) {
+      case 'conditional': return '#ef4444'; // 条件分岐: 赤
+      case 'entry': return '#10b981'; // 開始: 緑
+      case 'exit': return '#8b5cf6'; // 終了: 紫
+      case 'loop': return '#f59e0b'; // ループ: オレンジ
+      default: return '#6b7280'; // 通常: グレー
+    }
+  };
+
+  const getEdgeThickness = (edge: any) => {
+    if (edge.weight) {
+      return Math.max(1, Math.min(8, edge.weight)); // 1-8px
+    }
+    
+    switch (edge.importance) {
+      case 'critical': return 6;
+      case 'high': return 4;
+      case 'medium': return 3;
+      case 'low': return 1.5;
+      default: return 2;
+    }
+  };
+
+  const getEdgeStyle = (edge: any) => {
+    switch (edge.type) {
+      case 'conditional': return '8,4'; // 破線
+      case 'loop': return '4,4'; // 点線
+      default: return 'none'; // 実線
+    }
+  };
+
+  const getArrowMarker = (edge: any) => {
+    switch (edge.type) {
+      case 'conditional': return 'url(#arrowhead-conditional)';
+      case 'entry': return 'url(#arrowhead-entry)';
+      case 'exit': return 'url(#arrowhead-exit)';
+      default: return 'url(#arrowhead)';
+    }
+  };
+
+  const getEdgeLabelColor = (edge: any) => {
+    switch (edge.type) {
+      case 'conditional': return '#dc2626';
+      case 'entry': return '#059669';
+      case 'exit': return '#7c3aed';
+      default: return '#374151';
+    }
+  };
+
   const getSelectedNodeInfo = () => {
     if (!selectedNode || !graphData) return null;
     return graphData.nodes.find(node => node.id === selectedNode);
@@ -202,26 +395,59 @@ export function GraphView({ graphData, currentNode, isAnalyzing, className = '' 
         <h3 className="text-lg font-semibold text-gray-900">
           LangGraph実行フロー
         </h3>
-        <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-            <span>未実行</span>
+        <div className="space-y-3 mt-2">
+          {/* ノード状態の凡例 */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">ノード状態</h4>
+            <div className="flex items-center gap-4 text-xs text-gray-600 flex-wrap">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+                <span>未実行</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                <span>実行中</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                <span>現在</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span>完了</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span>エラー</span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-            <span>実行中 (オレンジ)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span>現在のノード (青)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span>完了</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span>エラー</span>
+          
+          {/* エッジタイプの凡例 */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-2">接続タイプ</h4>
+            <div className="flex items-center gap-4 text-xs text-gray-600 flex-wrap">
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-1 bg-gray-500"></div>
+                <span>通常</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-1 bg-red-500" style={{borderTop: '1px dashed #ef4444'}}></div>
+                <span>条件分岐</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-1 bg-green-500"></div>
+                <span>開始</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-1 bg-purple-500"></div>
+                <span>終了</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-6 h-1 bg-blue-400 animate-pulse"></div>
+                <span>データフロー</span>
+              </div>
+            </div>
           </div>
         </div>
         {isAnalyzing && (

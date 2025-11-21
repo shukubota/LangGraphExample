@@ -39,6 +39,13 @@ export function VisualizerClient() {
         setCurrentNode(null);
         setAnalysisError(null);
         setNodeStatuses({});
+        
+        // グラフ構造も同時に受信する場合
+        if (lastMessage.structure) {
+          setGraphData(lastMessage.structure);
+          console.log('Graph structure updated from analysis_started:', lastMessage.structure);
+        }
+        
         console.log('Analysis started');
         break;
 

@@ -135,9 +135,46 @@ def execute_analysis_with_visualization(session_id: str, pdf_path: str):
     try:
         print(f"Executing analysis for session: {session_id}")
         
-        # 開始通知
+        # 開始通知とグラフ構造の送信
+        graph_structure = {
+            'nodes': [
+                {'id': 'structure_analyzer', 'label': '構造解析', 'type': 'agent', 'description': '論文の構造を分析'},
+                {'id': 'technical_translator', 'label': '専門用語翻訳', 'type': 'agent', 'description': '専門用語を説明'},
+                {'id': 'figure_analyzer', 'label': '図表解析', 'type': 'agent', 'description': '図表を分析'},
+                {'id': 'trend_analyzer', 'label': 'トレンド分析', 'type': 'agent', 'description': '研究トレンドを分析'},
+                {'id': 'synthesizer', 'label': '統合', 'type': 'agent', 'description': '結果を統合'}
+            ],
+            'edges': [
+                {
+                    'id': 'e1', 'source': 'structure_analyzer', 'target': 'technical_translator',
+                    'type': 'direct', 'label': 'データ転送', 'importance': 'high', 'weight': 4
+                },
+                {
+                    'id': 'e2', 'source': 'technical_translator', 'target': 'figure_analyzer',
+                    'type': 'conditional', 'label': '図表あり', 'condition': 'has_figures',
+                    'importance': 'medium', 'weight': 3, 'animated': True,
+                    'dataFlow': {'active': True, 'direction': 'forward', 'speed': 'medium'}
+                },
+                {
+                    'id': 'e3', 'source': 'technical_translator', 'target': 'trend_analyzer',
+                    'type': 'conditional', 'label': '図表なし', 'condition': '!has_figures',
+                    'importance': 'medium', 'weight': 3
+                },
+                {
+                    'id': 'e4', 'source': 'figure_analyzer', 'target': 'trend_analyzer',
+                    'type': 'direct', 'label': 'データ転送', 'importance': 'medium', 'weight': 3
+                },
+                {
+                    'id': 'e5', 'source': 'trend_analyzer', 'target': 'synthesizer',
+                    'type': 'direct', 'label': '最終統合', 'importance': 'critical', 'weight': 5,
+                    'animated': True, 'dataFlow': {'active': True, 'direction': 'forward', 'speed': 'fast'}
+                }
+            ]
+        }
+        
         viz_manager.broadcast_to_session(session_id, 'graph_update', {
             'type': 'analysis_started',
+            'structure': graph_structure,
             'timestamp': datetime.now().isoformat()
         })
         
